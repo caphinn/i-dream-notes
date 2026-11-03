@@ -1,6 +1,6 @@
 ---
 title: เชื่อม i-DREAMS mock real-time เข้ากับระบบรุ่นพี่ และวาง scoring layer / chatbot
-updated: 2026-10-31
+updated: 2026-11-04
 status: ข้อเสนอสำหรับ discuss — ยังไม่ได้ลองเชื่อมจริง
 ---
 
@@ -11,6 +11,8 @@ status: ข้อเสนอสำหรับ discuss — ยังไม่�
 > **อัปเดต:** deck proposal (Canva) ออกแบบ Kafka + mapper + Flink/Redis และหน้าต่าง 30 นาที ×16 ไว้แล้ว — ดูสรุปและประเด็นที่ควรตรวจใน [[14-proposal-deck-review]]; เอกสารนี้ยังใช้เป็นเหตุผลประกอบและรายการความไม่แน่นอน
 
 > **อัปเดต D-07:** บน mock ไม่ใช้ XGBoost — ส่วน §4 (หน้าต่างเลื่อนสำหรับ XGBoost) ใช้เมื่อได้โมเดลและสถิติจริงเท่านั้น; ตอนนี้ engine = rule-based + EMA ดู [[15-decision-log]]
+
+> **อัปเดต 4 พ.ย. (D-21…D-24):** ตาราง §1.2, ตัวอย่างอัตรา §4 และข้อ 1, 5 ใน §7 ปรับตามสถานะล่าสุดแล้ว สเปก mapper ฉบับใช้งานอยู่ใน [[18-field-deep-dive]] (เอกสารนี้ยังเป็นเหตุผลประกอบ)
 
 > **อัปเดต D-19:** ไม่ขอโค้ดรุ่นพี่ — emulator ใช้ 4 ฟิลด์จากสไลด์และปล่อยเข้า Kafka ของเราเอง; การเชื่อมกับระบบรุ่นพี่จริงยังไม่ได้ทดสอบ
 
@@ -37,15 +39,15 @@ status: ข้อเสนอสำหรับ discuss — ยังไม่�
 
 | G7 feature (ของโมเดล) | วิธีได้มา | จาก i-DREAMS | ป้าย provenance |
 |---|---|---|---|
-| `G7_tailgating` | **แปลงตรง** | Headway L≥2 + `ME_Car_speed_mean` ≥ 50 | `derived` |
+| `G7_tailgating` | **แปลงตรง** | Headway L3 > 0 + `ME_Car_speed_mean` ≥ 50 (1 episode = 1 event; D-08) | `direct` |
 | `G7_yawn` | **แปลงอ้อม** (อาจารย์: fatigue = fatigue) | Fatigue level → สร้าง event แบบสุ่มมีเงื่อนไข | `derived-weak` |
 | `G7_eye_close` | **แปลงอ้อม** | Fatigue level → สร้าง event | `derived-weak` |
-| `G7_eye_off_road` | **mock** | LDW ไม่เหมาะ (ซ้าย 0.57% / ขวา 20.5% — น่าจะสะท้อนตำแหน่งเลน) | `synthetic` |
-| `G7_phone` | **mock** | ไม่มีสัญญาณ | `synthetic` |
+| `G7_eye_off_road` | **สร้างแบบอิงอ่อน** (D-21) | อัตรา 0.3/ชม. × ตัวคูณในนาทีที่มี LDW (รถที่ไม่ผิดปกติ) หรือ headway L2–3 | `synthetic-anchored` |
+| `G7_phone` | **สร้างแบบอิงอ่อน** (D-21) | อัตรา 0.05/ชม. × ตัวคูณ LDW / headway L2–3 | `synthetic-anchored` |
 
-- ถ้าจะนับ `eye_off_road` เป็น "อ้อม" ต้องติดป้าย `synthetic` ชัดเจน (ผมไม่แนะนำให้อ้างว่ามีฐานจาก LDW)
+- *(ข้อเสนอเดิม "ไม่แนะนำให้อ้างฐานจาก LDW" ถูกปรับโดย D-21: ใช้ LDW ของรถคันที่ไม่ผิดปกติเป็นจุดยึดอ่อนได้ ตราบที่ติดป้าย `synthetic-anchored` และไม่ใช้เป็นสัญญาณตรง)*
 - `yawn` กับ `eye_close` มาจากสัญญาณเดียว (Fatigue) → ไม่เป็นอิสระต่อกัน ต้องใส่ความสุ่มเพื่อไม่ให้สองตัวนี้เท่ากันเสมอ
-- **phone ต้องมี "ปุ่มควบคุม"**: กฎ priority alert ยิงเมื่อมี phone *ครั้งเดียว* → ถ้าสุ่มแบบอิสระ หน้า real-time จะเตือนตลอด; ตั้งอัตราเริ่มต้น = 0 และให้ admin/ผู้สาธิตฉีด scenario เอง *[อัปเดต 1 พ.ย.: D-21 — phone/eye_off_road เปิดแบบสร้างอิงข้อมูลจริงอ่อนๆ แทนปิด/ฉีดเอง ดู [[18-field-deep-dive]]]*
+- **phone ต้องมี "ปุ่มควบคุม"**: กฎ priority alert ยิงเมื่อมี phone *ครั้งเดียว* → ถ้าสุ่มแบบอิสระ หน้า real-time จะเตือนตลอด; ตั้งอัตราเริ่มต้น = 0 และให้ admin/ผู้สาธิตฉีด scenario เอง *[อัปเดต 1 พ.ย.: D-21 — phone/eye_off_road เปิดแบบสร้างอิงข้อมูลจริงอ่อนๆ แทนปิด/ฉีดเอง ดู [[18-field-deep-dive]]]* → **ตัดสินใหม่ D-21: เปิดด้วยอัตราต่ำ 0.05/ชม. (ไม่ท่วม) แทนปิด/ฉีดเอง; กฎ "phone ครั้งเดียว = HIGH" ยังเป็นของ priority alert แต่ D-17 ใช้กฎของโมเดล (มือถือ + มองนอกถนน > 1 ใน 3 วิ)**
 
 ### 1.3 "โมเดลใช้ไม่ได้" แยกเป็นสองความหมาย
 
@@ -73,7 +75,7 @@ status: ข้อเสนอสำหรับ discuss — ยังไม่�
 
 ## 3. Canonical event schema (ข้อเสนอเริ่มต้น) และกฎการพัฒนา
 
-ฟิลด์ขั้นต่ำ: `event_id, occurred_at, plate, driver_id, event_type, level (nullable), duration_s (nullable), speed_kmh, source (idreams|g7), provenance (direct|derived|derived-weak|synthetic), trip_id (nullable)`
+ฟิลด์ขั้นต่ำ: `event_id, occurred_at, plate, driver_id, event_type, level (nullable), duration_s (nullable), speed_kmh, source (idreams|g7), provenance (direct|derived-weak|synthetic-anchored), trip_id (nullable)`
 
 - G7 จริงไม่มี `level` → ปล่อยว่าง และให้สูตรที่ต้องใช้ level ประกาศว่า "ต้องการ level" (หรือแปลงด้วยกติกา SCGJWD §5.1.8 — ดู [[09-g7-definitions-from-seniors]])
 - **กฎ 3 ข้อสำหรับ scoring layer และ chatbot**
@@ -99,9 +101,9 @@ status: ข้อเสนอสำหรับ discuss — ยังไม่�
 | L0 | ต่ำมาก (เช่น ≤ 0.2 ครั้ง/ชม.) |
 | L1 | ~1 ครั้ง/ชม. |
 | L2 | ~3 ครั้ง/ชม. |
-| L3 | ถึง ~1 ครั้ง/นาที |
+| L3 | ~30 ครั้ง/ชม. (D-06; ข้อเสนอเดิม "~1 ครั้ง/นาที" ถูกแทนที่) |
 
-Tailgating: ปล่อย 1 event ต่อนาทีที่ Headway L2+L3 มีวินาที ≥ เกณฑ์ที่กำหนด และความเร็ว ≥ 50 km/h (ให้ตรงกฎ priority alert); timestamp สุ่มแบบ deterministic ในนาทีนั้น
+Tailgating: นาทีที่ Headway L3 > 0 และความเร็ว ≥ 50 km/h นับเป็น 1 episode (นาทีติดกันรวมเป็น 1 ครั้ง; ตาม D-08 ไม่สุ่ม); timestamp ภายในนาทีสุ่มแบบ deterministic
 
 ## 5. สิ่งที่ยังไม่รู้ (ต้องเช็กก่อนลงมือ)
 
@@ -120,9 +122,9 @@ Tailgating: ปล่อย 1 event ต่อนาทีที่ Headway L2+L3
 
 ## 7. ต้องตัดสินใจ
 
-1. ยืนยันสัดส่วน **1 / 2 / 2** (หรือจะนับ eye_off_road เป็น "อ้อม" พร้อมป้าย synthetic)
-2. ขอไฟล์โมเดล/MLflow และโค้ด ingest จากรุ่นพี่/อาจารย์ได้ไหม
-3. ขอบเขต real-time: หน้า rule-based อย่างเดียว หรือรวม XGBoost แบบหน้าต่าง 24 ชม.
-4. ความลึกการเชื่อม: Kafka (แนะนำ) / Mongo / API
+1. ยืนยันสัดส่วน **1 / 2 / 2** (หรือจะนับ eye_off_road เป็น "อ้อม" พร้อมป้าย synthetic) **→ ตัดสินแล้ว D-12 (1/2/2) และ D-21**
+2. ขอไฟล์โมเดล/MLflow และโค้ด ingest จากรุ่นพี่/อาจารย์ได้ไหม **→ ตัดสินแล้ว D-19 (ไม่ขอ)**
+3. ขอบเขต real-time: หน้า rule-based อย่างเดียว หรือรวม XGBoost แบบหน้าต่าง 24 ชม. **→ ตัดสินแล้ว D-07, D-17, D-18 (rule-based + EMA)**
+4. ความลึกการเชื่อม: Kafka (แนะนำ) / Mongo / API **→ ตัดสินแล้ว D-04 (Kafka)**
 5. นโยบาย phone: ปิดเป็นค่าเริ่มต้น + ฉีด scenario ด้วยมือ (แนะนำ) หรือสุ่ม *[อัปเดต 1 พ.ย.: D-21 — phone/eye_off_road เปิดแบบสร้างอิงข้อมูลจริงอ่อนๆ แทนปิด/ฉีดเอง ดู [[18-field-deep-dive]]]*
-6. ตัวเลขใน demo/รายงานต้องติดป้าย provenance ทุกครั้งหรือไม่
+6. ตัวเลขใน demo/รายงานต้องติดป้าย provenance ทุกครั้งหรือไม่ **→ ตัดสินแล้ว D-13 (ติดป้ายทุกที่)**

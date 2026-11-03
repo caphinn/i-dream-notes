@@ -1,6 +1,6 @@
 ---
 title: Field catalog — i-DREAMS sample ทุกคอลัมน์ และที่เราใช้ได้
-updated: 2026-10-31
+updated: 2026-11-04
 ---
 
 # Field catalog — i-DREAMS sample ทุกคอลัมน์ และที่เราใช้ได้
@@ -97,7 +97,7 @@ D3.6 (Table 3–7) บอกวิธีสร้างระดับ STZ ข�
 | **Overtaking** | ตรวจเมื่อ speed > 35 km/h และ accel > 0.2 m/s² โดยดูไฟเลี้ยว ข้ามเส้น yaw rate ความเร่ง ในช่วงห้ามแซง แล้วเทียบ threshold curve ตามชนิดรถ/อากาศ | `iDreams_Overtaking_Map_level_{0,1,2,3}_sum` (L2/L3 = 0 ทั้งไฟล์) | ความเร็ว `ME_Car_speed_mean` | ไฟเลี้ยว, yaw rate, ความเร่ง, ป้ายห้ามแซง, curve | ตรวจเงื่อนไขไม่ได้เลย ใช้ L1 เป็นแค่ flag; ไม่มีคู่ใน G7 |
 | **Harsh (ha/hb/hc)** | D3.6 ระบุแค่วัดผ่าน IMU **ไม่มีเกณฑ์**; D2.1 รวบรวมเกณฑ์จากงานวิจัยอื่น (เช่น braking 0.21 g, accel 0.18 g, cornering ±0.18 g อีกงาน 2.1 / 1.8 / 1.8 m/s²) ไม่ระบุว่า i-DREAMS ใช้ค่าไหน | `DEM_evt_{ha,hb,hc}_lvl_{L,M,H}_sum` | ความเร็ว `ME_Car_speed_mean` (ใช้ตรวจว่า hb ลดความเร็วจริง) | ค่าความเร่งดิบ | อ้างตัวเลข threshold ของ i-DREAMS ไม่ได้ ใช้เป็น level L/M/H ตามที่ให้ |
 
-**ไม่มี phone / distraction ใน sample:** ไม่มีคอลัมน์ใดตรวจจับการใช้มือถือ (หรือ distraction) D3.6 ระบุ "Distraction warning (phone in hand)" เป็น warning หนึ่งของระบบ และใช้ distraction เป็นตัวปรับ threshold ของ headway / speeding / overtaking → ระดับใน sample *อาจ* ถูกคำนวณโดยรวมผลนี้ไปแล้วโดยเรามองไม่เห็นและย้อนคำนวณไม่ได้ [ยังไม่ยืนยันว่า sample รวมตัวปรับนี้หรือไม่] ฝั่ง G7 phone เป็นหนึ่งใน 5 feature ของโมเดล → ใน mock ต้องเป็น synthetic ฉีดเอง (D-11, D-12)
+**ไม่มี phone / distraction ใน sample:** ไม่มีคอลัมน์ใดตรวจจับการใช้มือถือ (หรือ distraction) D3.6 ระบุ "Distraction warning (phone in hand)" เป็น warning หนึ่งของระบบ และใช้ distraction เป็นตัวปรับ threshold ของ headway / speeding / overtaking → ระดับใน sample *อาจ* ถูกคำนวณโดยรวมผลนี้ไปแล้วโดยเรามองไม่เห็นและย้อนคำนวณไม่ได้ [ยังไม่ยืนยันว่า sample รวมตัวปรับนี้หรือไม่] ฝั่ง G7 phone เป็นหนึ่งใน 5 feature ของโมเดล → ใน mock ต้องเป็น synthetic ฉีดเอง (D-11, D-12) *[อัปเดต: POC สร้าง phone/eye_off_road แบบอิงอ่อนจาก LDW + headway ระดับ 2–3 (D-21) ไม่ได้อ่านจากคอลัมน์ใดใน sample]*
 
 **ข้อสรุป:** level ใน sample คำนวณจากตัวปรับหลายตัวที่เราไม่มี (KSS, distraction, อายุ/เพศ, สภาพอากาศ, speed limit) จึง **ย้อนคำนวณ level เองไม่ได้** ทำได้แค่ (ก) ตรวจว่าสอดคล้องช่วงตัวเลขของ D3.6 (ข) ใช้ level ที่ให้มาโดยตรง
 
@@ -117,7 +117,7 @@ D3.6 (Table 3–7) บอกวิธีสร้างระดับ STZ ข�
 
 **ใช้ได้เต็มที่ (แกนของ use case):**
 - ตัวระบุ trip/driver/vehicle + เวลา (`trip_uuid_`, `driver_uuid_`, `vehicle_uuid_`, `grpby_seconds`, `trip_start_` + `tirp_start_time`, `trip_end_`)
-- Headway L1–3 (ขับตามชิด), Speeding L1–3 (ขับเร็วเกินขีดจำกัด)
+- Headway L2–3 (ขับตามชิด; L3 ที่ ≥ 50 km/h = tailgating), Speeding L2–3 (ขับเร็วเกินขีดจำกัด) — ระดับ 1 เป็น "ปกติ" นับ ×0 (D-22, D-23)
 - `ME_Car_speed_mean` (ความเร็ว), harsh braking (`hb`)
 
 **ใช้ได้แต่ต้องระวังหรือตั้งชื่อให้ตรง:**
@@ -126,7 +126,7 @@ D3.6 (Table 3–7) บอกวิธีสร้างระดับ STZ ข�
 - `GPS_distances_sum` ต้องตัดค่าผิดปกติ; `time_indicator` ต้องยืนยัน coding ก่อนทำ "ขับกลางคืน"
 - context เสริม: wipers, `tsr_level`, `pedestrian_dz`, ความเร็ว GPS ไว้ cross-check
 
-**ไม่ควรใช้:** คอลัมน์ QA, `vehicle_class_`, `ME_AWS_hw_measurement_mean`, `ME_TSR_tsr_1_speed_median`, FCW/PCW, high beam, LDW, IBI, Overtaking L2/L3, ตัว `_mean` ที่ซ้ำกับ `_sum`
+**ไม่ควรใช้ (เป็นสัญญาณ):** คอลัมน์ QA, `vehicle_class_`, `ME_AWS_hw_measurement_mean`, `ME_TSR_tsr_1_speed_median`, FCW/PCW, high beam, LDW, IBI, Overtaking L2/L3, ตัว `_mean` ที่ซ้ำกับ `_sum` *(LDW ของรถคันที่ไม่ผิดปกติ ≈ 181 นาที ใช้เป็น "จุดยึดอ่อน" ของ phone/eye_off_road ได้ตาม D-21 ไม่ใช้เป็นสัญญาณตรง)*
 
 ## ฟิลด์ที่ derive ได้จากข้อมูล (ตัวอย่างสำหรับ UC-01…05) [ตรวจแล้ว ว่าคำนวณได้จากคอลัมน์ที่มี; POC ทำบางส่วนอยู่แล้ว]
 
@@ -134,7 +134,7 @@ D3.6 (Table 3–7) บอกวิธีสร้างระดับ STZ ข�
 |---|---|---|
 | เวลา/ระยะทาง/ความเร็วเฉลี่ยของ trip | `grpby_seconds`, `GPS_distances_sum` (ตัดค่าผิดปกติ), `ME_Car_speed_mean` | UC-05 |
 | วินาทีเสี่ยงต่อ level ต่อประเภท | `*_level_N_sum` | UC-01, UC-02, UC-03 |
-| risk_score / risk_level | วินาทีเสี่ยงถ่วงน้ำหนัก 1/3/10 ÷ ชั่วโมงขับ (สูตรของเรา) | UC-01, UC-04 |
+| risk_score / risk_level | วินาทีเสี่ยงถ่วงน้ำหนัก (ระดับ 1 = ×0, ระดับ 2 = ×3, ระดับ 3 = ×10; harsh คงน้ำหนักเดิม) ÷ ชั่วโมงขับ (สูตรของเรา) | UC-01, UC-04 |
 | episode ของ event (ห่าง ≤ 90 วินาที = 1 ครั้ง) | แถวต่อเนื่องของ event เดียวกัน | UC-02, UC-03 |
 | STZ phase ต่อนาที | Headway level: Normal = -1/0/1, Dangerous = 2, Avoidable = 3 ([[10-stz-labelling]]) | glossary, benchmark |
 | ขับต่อเนื่อง ≥ 4 ชม. | `grpby_seconds ≥ 14,400` (2,634 แถว, 36 trips) | proxy ของ `continuous_work` |
@@ -144,3 +144,5 @@ D3.6 (Table 3–7) บอกวิธีสร้างระดับ STZ ข�
 ## คำถามประเภทที่ข้อมูลนี้ตอบ "ไม่ได้" (ต้องเข้า FB-06)
 
 มือถือ · หาว · หลับตา · ง่วง/หลับใน (อาการ) · สูบบุหรี่ · ละสายตา/มองนอกถนน · ชนด้านหน้า (FCW) · อัตราการเต้นหัวใจ · ชื่อ/ทะเบียนจริง
+
+*สถานะ 4 พ.ย.:* วันนี้ POC ตอบ FB-06 ตามรายการนี้ (หาว/หลับตา ตอบแบบ "ใกล้เคียง = Fatigue") หลังทำ mapper (D-21) มือถือ/มองนอกถนนจะตอบได้แบบสร้างพร้อมป้าย `synthetic-anchored` และหาว/หลับตาตอบได้พร้อมป้าย `derived-weak` ส่วนบุหรี่ FCW หัวใจ ชื่อจริง ยังเข้า FB-06

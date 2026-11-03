@@ -1,6 +1,6 @@
 ---
 title: i-DREAMS ↔ G7 — knowledge base (Capstone)
-updated: 2026-11-01
+updated: 2026-11-04
 status: ตัดสินใจ D-01…D-24; POC แก้ WP1–WP4 แล้ว (smoke test 27/27 ผ่าน); ถัดไป = mapper function
 ---
 
@@ -27,9 +27,9 @@ status: ตัดสินใจ D-01…D-24; POC แก้ WP1–WP4 แล้�
 
 **i-DREAMS ↔ G7 ต่างกันกว่าที่คิด**
 - i-DREAMS วัด *พฤติกรรมการขับ* (headway, speed, braking, เวลาขับ) ส่วน G7 วัด *สภาพคนขับ* (หาว, หลับตา, มือถือ, มองนอกถนน)
-- จาก 5 feature ของโมเดลรุ่นพี่: **tailgating = ตรง (ผ่าน Headway L3 ที่ ≥ 50 km/h)**, **หาว/หลับตา = อ้อม (ผ่าน Fatigue)**, **phone และ eye_off_road = ไม่มีสัญญาณ ต้อง synthetic** → สัดส่วน **1 ตรง / 2 อ้อม / 2 mock**
+- จาก 5 feature ของโมเดลรุ่นพี่: **tailgating = ตรง (ผ่าน Headway L3 ที่ ≥ 50 km/h)**, **หาว/หลับตา = อ้อม (ผ่าน Fatigue)**, **phone และ eye_off_road = ไม่มีสัญญาณ ต้องสร้างเอง แบบอิงอ่อนจาก LDW + headway L2–3 (D-21, ป้าย `synthetic-anchored`)** → สัดส่วน **1 ตรง / 2 อ้อมอ่อน / 2 สร้างแบบอิงอ่อน**
 - **Fatigue_Map วัดจากเวลาขับ ไม่ใช่การตรวจอาการ** อาจารย์ให้คงชื่อ Fatigue และเชื่อมกับหาว/หลับตาในระดับแนวคิด แต่ต้องเปิดเผยว่าเป็นค่าประมาณ
-- ตัด IBI (0 ใน 99.3% ของแถว), FCW (18 แถว), LDW (เป็นผลของรถคันเดียว) ออกจาก mapper
+- ตัด IBI (0 ใน 99.3% ของแถว) และ FCW (18 แถว) ออกจาก mapper; LDW เป็นผลของรถคันเดียว จึงไม่ใช้เป็นสัญญาณ ใช้เป็นแค่จุดยึดอ่อนของ phone/eye_off_road (รถคันอื่น)
 
 **สิ่งที่ตัดสินแล้ว (D-01…D-24) แบบสั้น**
 1. Fatigue_Map ใช้กับ G7 factor เท่านั้น (ไม่นับซ้ำกับ Fatigue factor)
@@ -67,6 +67,7 @@ status: ตัดสินใจ D-01…D-24; POC แก้ WP1–WP4 แล้�
 | ตัดสินใจอะไรไปแล้ว เพราะอะไร | [[15-decision-log]] |
 | ต้องแก้อะไรใน deck | [[16-deck-patch-list]] (เหตุผลดู [[14-proposal-deck-review]]) |
 | ลงลึกทีละ field (เริ่มตรงนี้ถ้าจะอ่านเรื่อง field) | [[18-field-deep-dive]] |
+| [[19-handoff-mapper-weights]] | บรีฟส่งต่องาน: อ่านไฟล์ไหน, todo ของ mapper function และการหา weight ของ risk score |
 | เนื้อหาสไลด์ใหม่ พร้อมวาง | [[17-slide-content]] |
 | เวอร์ชัน / ลิงก์อ้างอิง | [[05-zenodo-sample-version]], [[06-deliverables-catalog]], [[07-references]] |
 
@@ -82,20 +83,20 @@ status: ตัดสินใจ D-01…D-24; POC แก้ WP1–WP4 แล้�
 
 1. **1 แถว = 1 นาทีของ 1 trip** ไม่ใช่ 1 event คอลัมน์ `*_level_N_sum` คือ *วินาทีที่อยู่ใน level นั้น* (รวมกันได้ 60 ต่อแถว) ไม่ใช่จำนวนครั้ง → [[01-dataset-overview]]
 2. Level 0–3 ที่ i-DREAMS คำนวณมาให้แล้ว ไม่ใช่เซนเซอร์ดิบ: Headway แปลตรงเป็น phase ของ STZ (−1/0/1 Normal, 2 Danger, 3 Avoidable) ส่วน Speeding/Overtaking/Fatigue เป็น *ระดับ warning* ที่จัดเข้า phase (D6.3 Table 2 → [[06-deliverables-catalog]])
-3. i-DREAMS ครอบคลุมเฉพาะ **พฤติกรรมการขับ** (headway, speed, braking, เวลาขับ) ส่วน **สภาพคนขับ** (phone, หาว, หลับตา, มองนอกถนน, บุหรี่) ไม่มีในไฟล์ → [[02-g7-mapping]]
-4. **Fatigue_Map วัดจากเวลาขับ** ไม่ใช่อาการง่วง จึงไม่ map กับ G7_yawn / eyes_closed (เป็น proxy ของ continuous_work ได้) → [[03-fatigue-finding]]
-5. **DEM (harsh) ก็เป็นวินาทีเช่นกัน** แต่ POC นับเป็นจำนวนครั้ง ×5 วินาที → penalty/risk_score น่าจะสูงเกินจริง → [[04-harsh-events-poc-issue]]
+3. i-DREAMS ครอบคลุมเฉพาะ **พฤติกรรมการขับ** (headway, speed, braking, เวลาขับ) ส่วน **สภาพคนขับ** (phone, หาว, หลับตา, มองนอกถนน, บุหรี่) ไม่มีในไฟล์ (หลังทำ mapper จะสร้างแบบอิงอ่อน ตาม D-21 โดยติดป้ายที่มา) → [[02-g7-mapping]], [[18-field-deep-dive]]
+4. **Fatigue_Map วัดจากเวลาขับ** ไม่ใช่อาการง่วง จึงไม่ใช่ event เดียวกับ G7_yawn / eyes_closed แต่อาจารย์ให้เชื่อมในระดับแนวคิดได้ (D-01, ดูข้อ 13); ยังเป็น proxy ของ continuous_work ได้ → [[03-fatigue-finding]]
+5. **DEM (harsh) ก็เป็นวินาทีเช่นกัน** POC เดิมนับเป็นจำนวนครั้ง ×5 วินาที → **แก้แล้วใน WP1** (นับเป็นวินาที ตัด ×5): สัดส่วน penalty ของ cornering 52.4% → 33.2% (วัดจริง) → [[04-harsh-events-poc-issue]]
 6. Zenodo sample = **v1.0 (28 ก.พ. 2023)** ไม่เกี่ยวกับ "ver 2.x/3.x" — D2.1/D3.6 คือเลข Deliverable ของ Work Package → [[05-zenodo-sample-version]], [[06-deliverables-catalog]]
 7. ใน POC `risk_score`, ทะเบียนรถ และวันที่ เป็นข้อมูลที่เรา derive/สังเคราะห์ ไม่ได้มาจาก i-DREAMS → [[08-poc-implications-and-open-questions]]
-8. โมเดล production ของรุ่นพี่ใช้ feature 5 ตัว (yawn, eye_close, phone, tailgating, eye_off_road) — i-DREAMS ครอบคลุมแค่ **1 ใน 5** (tailgating); G7 event 11 ชนิด ไม่มีนิยามของ `continuous_work`/`vehicle_fatigue` นอกจากชื่อ → [[09-g7-definitions-from-seniors]]
+8. โมเดล production ของรุ่นพี่ใช้ feature 5 ตัว (yawn, eye_close, phone, tailgating, eye_off_road) — ที่ข้อมูลรองรับคือ **1 ตรง (tailgating) / 2 อ้อมอ่อน (yawn, eye_close ผ่าน Fatigue) / 2 สร้างแบบอิงอ่อน (phone, eye_off_road — D-21)**; G7 event 11 ชนิด ไม่มีนิยามของ `continuous_work`/`vehicle_fatigue` นอกจากชื่อ → [[09-g7-definitions-from-seniors]]
 9. **STZ label** ทำซ้ำได้จากคอลัมน์ Headway level ที่มีอยู่ (Normal = -1/0/1, Dangerous = 2, Avoidable = 3) ตามเปเปอร์ Theodoraki 2026; ไม่ต้องรอ D4.2 → [[10-stz-labelling]]
 10. ตัวเลข "กี่ครั้ง" ในคำตอบ bot มาจากจำนวน episode (ไม่ผิดหน่วย) — ที่ผิดคือ penalty/risk_score และฟิลด์ `occurrences` ของ harsh → แผนแก้ใน [[11-poc-fix-plan]]
 11. อาจารย์ไม่อนุญาตให้ขอชุดเต็ม → ใช้ sample นี้เป็น mock data เพื่อแสดงระบบเท่านั้น
 12. ฟิลด์ที่ใช้ได้เต็มที่มีน้อยกว่าที่คิด: แกนคือ Headway/Speeding/ความเร็ว/harsh brake + ตัวระบุ; `IBI` เป็น 0 ใน 99.3% ของแถว, FCW/PCW/high beam แทบไม่มีข้อมูล, `GPS_distances_sum` มีค่าผิดปกติ 126 แถว → [[12-field-catalog]]
-13. **อาจารย์ (31 ต.ค.): fatigue = fatigue และเชื่อมกับหาว/หลับตาของ G7 ได้ในระดับแนวคิด** → คงชื่อ Fatigue ใน POC แต่ต้องบอกว่าวัดจากเวลาขับ (ไม่ใช่ตรวจอาการ); ผลวัด: หลังแก้ harsh แล้ว Fatigue จะมีน้ำหนัก ~20% ของ penalty → [[03-fatigue-finding]], [[11-poc-fix-plan]]
-14. **Real-time ของรุ่นพี่เป็น rule-based; XGBoost เป็น batch รายวัน** — (ข้อเสนอเดิมเรื่องหน้าต่าง 24 ชม. ถูกแทนด้วย D-17: rule engine หน้าต่าง 2/60 นาที); สัดส่วนการแปลง G7 feature ที่ข้อมูลรองรับคือ 1 ตรง / 2 อ้อม / 2 mock; จุดเชื่อมคือ G7 emulator ที่ Kafka → [[13-integration-with-seniors-system]]
+13. **อาจารย์ (31 ต.ค.): fatigue = fatigue และเชื่อมกับหาว/หลับตาของ G7 ได้ในระดับแนวคิด** → คงชื่อ Fatigue ใน POC แต่ต้องบอกว่าวัดจากเวลาขับ (ไม่ใช่ตรวจอาการ); ผลวัด: หลัง WP1 Fatigue = 22.7% ของ penalty (ก่อนแก้ 7.2%) → [[03-fatigue-finding]], [[11-poc-fix-plan]]
+14. **Real-time ของรุ่นพี่เป็น rule-based; XGBoost เป็น batch รายวัน** — (ข้อเสนอเดิมเรื่องหน้าต่าง 24 ชม. ถูกแทนด้วย D-17: rule engine หน้าต่าง 2/60 นาที); สัดส่วนการแปลง G7 feature ที่ข้อมูลรองรับคือ 1 ตรง / 2 อ้อมอ่อน / 2 สร้างแบบอิงอ่อน; จุดเชื่อมคือ G7 emulator ที่ Kafka → [[13-integration-with-seniors-system]]
 15. **Deck proposal (Canva) มีสถาปัตยกรรม, scoring layer (Empirical Bayes) และ POC Flink/Redis อยู่แล้ว** — ที่เสนอเรื่อง Kafka mapper และหน้าต่างเวลาตรงกับ deck; ประเด็นที่ตรวจพบ (Fatigue ใช้ซ้ำ, event 204/คัน/วัน, K เกินข้อมูล, IBI ใช้ไม่ได้) ตัดสินครบแล้ว → [[14-proposal-deck-review]], ตัดสินทีละข้อใน [[15-decision-log]]
-16. **ตัดสินใจครบแล้ว (D-01…D-20)**: Fatigue_Map → G7 factor เท่านั้น; event หาว/หลับตาสุ่มตามระดับ; **ไม่ใช้ XGBoost บน mock** (rule engine: Track 1 หน้าต่าง 2 นาที, Track 2 หน้าต่าง 60 นาที + EMA); tailgating ตามนิยาม SCGJWD (mock fleet ≈ LOW 22 / MED 71 / HIGH 7); K จาก mock (เกณฑ์อันดับใช้ K medium); ตัด IBI/FCW/LDW; สัดส่วน 1/2/2; ติดป้าย provenance ทุกที่; ไม่ขอโค้ดรุ่นพี่ → ยังไม่ได้ทดสอบกับระบบจริง → [[15-decision-log]], [[16-deck-patch-list]]
+16. **ตัดสินใจแล้ว D-01…D-24**: Fatigue_Map → G7 factor เท่านั้น; event หาว/หลับตาสุ่มตามระดับ; **ไม่ใช้ XGBoost บน mock** (rule engine: Track 1 หน้าต่าง 2 นาที, Track 2 หน้าต่าง 60 นาที + EMA); tailgating ตามนิยาม SCGJWD (mock fleet ≈ LOW 22 / MED 71 / HIGH 7 ก่อน D-21; ≈ 18 / 75 / 7 หลังเปิด phone/eye_off_road); K จาก mock (เกณฑ์อันดับใช้ K medium); ตัด IBI/FCW (LDW ใช้เป็นจุดยึดอ่อนของ phone/eye_off_road เท่านั้น); สัดส่วน 1/2/2; phone/eye_off_road อิงอ่อน (D-21); ระดับ 1 ของ Headway/Speeding/Overtaking = ×0 (D-22, D-23); ลำดับงาน (D-24); ติดป้าย provenance ทุกที่; ไม่ขอโค้ดรุ่นพี่ → ยังไม่ได้ทดสอบกับระบบจริง → [[15-decision-log]], [[16-deck-patch-list]]
 
 ## 5. ลำดับที่เจอ (เพื่อไล่ตามบริบทตอน discuss)
 
@@ -113,7 +114,7 @@ status: ตัดสินใจ D-01…D-24; POC แก้ WP1–WP4 แล้�
 | ไฟล์ | เนื้อหา |
 |---|---|
 | [[01-dataset-overview]] | โครงสร้างข้อมูล, ความหมายคอลัมน์/level, คุณภาพข้อมูล |
-| [[02-g7-mapping]] | ตารางเทียบ G7 ↔ i-DREAMS พร้อมหลักฐาน |
+| [[02-g7-mapping]] | ตารางเทียบ G7 11 ชนิด ↔ i-DREAMS แบบย่อ + หลักฐานต่อ event (วิธี map ละเอียดอยู่ใน 18) |
 | [[03-fatigue-finding]] | Fatigue = เวลาขับ (หลักฐานจาก D3.6 + ข้อมูล) |
 | [[04-harsh-events-poc-issue]] | DEM เป็นวินาที + ปัญหาใน POC |
 | [[05-zenodo-sample-version]] | Zenodo v1.0 และชุดข้อมูลที่ตัวเลขต่างกัน |
@@ -126,8 +127,8 @@ status: ตัดสินใจ D-01…D-24; POC แก้ WP1–WP4 แล้�
 | [[12-field-catalog]] | ทุกคอลัมน์ (85) พร้อมคุณภาพ ✅/⚠/❌ และสิ่งที่ derive ได้ |
 | [[13-integration-with-seniors-system]] | แผนเชื่อม i-DREAMS mock real-time เข้ากับระบบรุ่นพี่ (G7 emulator ที่ Kafka), scoring layer, chatbot |
 | [[14-proposal-deck-review]] | สรุป Canva deck (scoring layer, ML real-time, chatbot) + ประเด็นที่ควรตรวจ 12 ข้อ |
-| [[15-decision-log]] | รายการตัดสินใจ D-01…D-20 (Q-01…Q-15 ปิดครบ) + งานค้าง R-01…R-05 |
-| [[16-deck-patch-list]] | รายการแก้ Canva deck ตามการตัดสินใจ D-01…D-20 (ร่าง ให้ทีมแก้เอง) |
+| [[15-decision-log]] | รายการตัดสินใจ D-01…D-24 (Q-01…Q-15 ปิดครบ) + งานค้าง R-01…R-11 |
+| [[16-deck-patch-list]] | รายการแก้ Canva deck ตามการตัดสินใจ D-01…D-24 (ร่าง ให้ทีมแก้เอง) |
 | [[18-field-deep-dive]] | เจาะลึกทีละ field: ภาพรวม i-DREAMS, i-DREAMS ↔ G7 ทั้ง 5 feature พร้อมสเปก mapper, Speeding/Harsh, สิ่งที่ต้องเปลี่ยนใน alert code/POC/scoring layer |
 | [[17-slide-content]] | ข้อความพร้อมวางสำหรับสไลด์ใหม่ (i-DREAMS, แทน G7, แต่ละ field, งานแก้ POC/alert code/scoring layer, limitations) |
 

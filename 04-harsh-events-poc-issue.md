@@ -1,9 +1,12 @@
 ---
 title: DEM (harsh events) = วินาที + ปัญหาใน POC
-updated: 2026-10-31
+updated: 2026-11-04
 ---
 
 # DEM (harsh events) = วินาที + ปัญหาใน POC
+
+> **สถานะ 4 พ.ย.: แก้แล้วใน WP1 (D-14)** harsh นับเป็นวินาที ตัด ×5, `occurrences` = 1 ต่อ event และ `duration_s` = วินาทีรวม, ปรับ `RISK_SCALE` เป็น 14,600 (เดิม 60,000) ผลที่วัดได้: cornering 52.4% → 33.2%, accel 13.9% → 8.8%, brake 13.7% → 8.7% ของ penalty; trip HIGH/MEDIUM/LOW 139/335/178 → 187/258/207 เนื้อหาด้านล่างคือการวินิจฉัยตอนพบปัญหา (ตัวเลข "ปัจจุบัน" = ก่อนแก้ เก็บที่ `reports/before_fix/`)
+
 
 กลับไป [[00-README]] · ดู mapping [[02-g7-mapping]]
 
