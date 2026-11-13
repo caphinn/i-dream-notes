@@ -1,0 +1,47 @@
+{
+ "tailgating": {
+  "events": 64,
+  "per_h": 0.09,
+  "per_vday": 0.48,
+  "per_trip": 0.1,
+  "pct_vday_ge1": 23.0,
+  "pct_trip_ge1": 7.0,
+  "per_100h": 9.0
+ },
+ "yawn": {
+  "events": 1152,
+  "per_h": 1.61,
+  "per_vday": 8.6,
+  "per_trip": 1.77,
+  "pct_vday_ge1": 74.0,
+  "pct_trip_ge1": 37.0,
+  "per_100h": 161.0
+ },
+ "eye_close": {
+  "events": 402,
+  "per_h": 0.56,
+  "per_vday": 3.0,
+  "per_trip": 0.62,
+  "pct_vday_ge1": 28.0,
+  "pct_trip_ge1": 7.0,
+  "per_100h": 56.0
+ },
+ "eye_off_road": {
+  "events": 1125,
+  "per_h": 1.57,
+  "per_vday": 8.4,
+  "per_trip": 1.73,
+  "pct_vday_ge1": 78.0,
+  "pct_trip_ge1": 57.0,
+  "per_100h": 157.0
+ },
+ "phone": {
+  "events": 102,
+  "per_h": 0.14,
+  "per_vday": 0.76,
+  "per_trip": 0.16,
+  "pct_vday_ge1": 31.0,
+  "pct_trip_ge1": 11.0,
+  "per_100h": 14.0
+ }
+}

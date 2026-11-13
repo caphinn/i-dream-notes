@@ -1,0 +1,100 @@
+{
+ "moving_minutes": 42869,
+ "moving_hours": 714.5,
+ "tailgating[L3 > 0 (old)]": {
+  "checkable": 338,
+  "within20m": 172,
+  "precision": 50.9,
+  "ci": [
+   46,
+   56
+  ]
+ },
+ "tailgating[L3 dominant]": {
+  "checkable": 63,
+  "within20m": 54,
+  "precision": 85.7,
+  "ci": [
+   75,
+   92
+  ]
+ },
+ "tailgating[L3 >= 30 s (used)]": {
+  "checkable": 55,
+  "within20m": 53,
+  "precision": 96.4,
+  "ci": [
+   88,
+   99
+  ]
+ },
+ "tailgating_baseline_pct": 10.6,
+ "yawn_minutes_pct": {
+  "path_fatigue": 22.4,
+  "path_drive120": 22.7,
+  "either": 33.9,
+  "only_fatigue": 11.2,
+  "only_drive120": 11.5,
+  "both": 11.2
+ },
+ "yawn_overlap": {
+  "drive120_without_fatigue": 50.6,
+  "fatigue_without_drive120": 49.9
+ },
+ "yawn_events": {
+  "total": 1152,
+  "from_fatigue": 727,
+  "only_drive120": 425,
+  "share_only_drive120_pct": 37
+ },
+ "eye_close": {
+  "night_pct": 47.8,
+  "fatigue_ge2_pct": 10.7,
+  "both_pct": 8.4,
+  "events": 396,
+  "events_fatigue_ge2_all": 442
+ },
+ "danger_2m_pct": [
+  51.8,
+  41.5,
+  6.5,
+  0.2
+ ],
+ "signal_rate_pct": {
+  "headway_ge_L2": 21.2,
+  "harsh_MH": 3.4,
+  "speeding_ge_L2": 16.9
+ },
+ "eye_off_road_minutes": {
+  "n": 2884,
+  "headway_speeding_only": 2034,
+  "share_headway_speeding_only_pct": 71,
+  "involving_harsh_brake": 850
+ },
+ "eye_off_road_combos": {
+  "headway + speeding": 2034,
+  "headway + harsh brake": 434,
+  "speeding + harsh brake": 323,
+  "all three": 93
+ },
+ "phone": {
+  "minutes": 141,
+  "path_all3": 93,
+  "path_ped": 48,
+  "ped_pct": 0.9,
+  "rate_phone": 0.14,
+  "rate_eye_off_road": 1.57,
+  "subset_of_eye_off_road": true
+ },
+ "signal_rate_trailing2m_pct": {
+  "headway_2m": 29.6,
+  "harsh_2m": 5.0,
+  "speeding_2m": 20.5,
+  "pedestrian_2m": 1.5
+ },
+ "signal_rate_raw_pct": {
+  "Headway >= L2": 21.2,
+  "harsh brake M/H": 3.4,
+  "Speeding >= L2": 16.9
+ }
+}
