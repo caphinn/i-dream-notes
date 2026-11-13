@@ -6,6 +6,8 @@ status: WP1–WP4 แก้โค้ดแล้ว และ smoke test ผ่�
 
 # แผนแก้ POC (`work-space/chatbot-with-idream`)
 
+> **อัปเดต 14 พ.ย.:** ส่วนที่ผูกกับ event เดิม (WP1 หน่วย harsh/penalty/`RISK_SCALE`, น้ำหนักระดับ 1) ถูกแทนที่ด้วย mapper v2 (D-25) — รายการงานใหม่อยู่ที่ [[23-poc-update-for-mapper-v2]]
+
 กลับไป [[00-README]] · ที่มาของปัญหา: [[04-harsh-events-poc-issue]], [[03-fatigue-finding]], [[02-g7-mapping]], [[09-g7-definitions-from-seniors]]
 
 บริบทที่ตกลงแล้ว: ข้อมูล i-DREAMS เป็น **mock data เพื่อแสดงระบบ** (อาจารย์ไม่ให้ขอชุดเต็ม; ประเทศไม่สำคัญ) → เป้าหมายของการแก้คือ *ตัวเลขถูกต้อง, ชื่อไม่หลอก, ตอบตรงเมื่อไม่มีข้อมูล, และสลับ data source ภายหลังได้* ไม่ใช่ทำให้ตรงกับ G7 100%

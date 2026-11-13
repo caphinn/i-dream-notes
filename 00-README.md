@@ -124,6 +124,7 @@ status: ตัดสินใจ D-01…D-24; POC แก้ WP1–WP4 แล้�
 | [[09-g7-definitions-from-seniors]] | G7 event 11 ชนิด, feature 5 ตัว, ผลค้นหา continuous_work/vehicle_fatigue |
 | [[10-stz-labelling]] | นิยาม STZ, label ที่ sample ใช้ได้, ทางเลือกแทน D4.2 |
 | [[11-poc-fix-plan]] | แผนแก้ POC (WP1–WP8), ปัญหา P1–P9, การตัดสินใจ |
+| [[23-poc-update-for-mapper-v2]] | รายการแก้ POC ให้ใช้ event จาก mapper v2 (แทนส่วนที่ผูกกับ event เดิมของ [[11-poc-fix-plan]]) |
 | [[12-field-catalog]] | ทุกคอลัมน์ (85) พร้อมคุณภาพ ✅/⚠/❌ และสิ่งที่ derive ได้ |
 | [[13-integration-with-seniors-system]] | แผนเชื่อม i-DREAMS mock real-time เข้ากับระบบรุ่นพี่ (G7 emulator ที่ Kafka), scoring layer, chatbot |
 | [[14-proposal-deck-review]] | สรุป Canva deck (scoring layer, ML real-time, chatbot) + ประเด็นที่ควรตรวจ 12 ข้อ |
